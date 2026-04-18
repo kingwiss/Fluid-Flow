@@ -1,0 +1,5 @@
+{
+  "name": "FluidFlow Delivery",
+  "description": "Frictionless, no-sign-up delivery service with a smooth step-by-step flow.",
+  "requestFramePermissions": ["geolocation"]
+}

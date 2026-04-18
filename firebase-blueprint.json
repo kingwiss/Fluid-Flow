@@ -1,0 +1,27 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "A delivery order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "customerName": { "type": "string" },
+        "orderDetails": { "type": "string" },
+        "pickupAddress": { "type": "string" },
+        "deliveryAddress": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "uid": { "type": "string" }
+      },
+      "required": ["customerPhone", "createdAt", "uid"]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Orders placed by users"
+    }
+  }
+}

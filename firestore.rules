@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+    
+    match /orders/{orderId} {
+      // Allow public read/write for prototype since custom OTP is used instead of Firebase Auth
+      allow read, write: if true;
+    }
+    
+    match /orders/{orderId}/messages/{messageId} {
+      allow read, write: if true;
+    }
+
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    match /schedule_blocks/{dateId} {
+      // Allow public read/write for MVP so customers can see blocks and driver can set them
+      allow read, write: if true;
+    }
+  }
+}
