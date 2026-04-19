@@ -651,7 +651,7 @@ app.post('/api/distance', async (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
     const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
+    app.listen(Number(PORT), '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
     });
   }
