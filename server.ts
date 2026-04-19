@@ -240,10 +240,19 @@ app.post('/api/distance', async (req, res) => {
   app.post('/api/sms/send-otp', async (req, res) => {
     const { phone } = req.body;
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore.set(phone, otp);
+    
+    if (db) {
+      try {
+        await setDoc(doc(db, 'otps', phone), { code: otp, expiresAt: Date.now() + 10 * 60 * 1000 });
+      } catch (err) {
+        console.error('Failed to save OTP to Firestore', err);
+      }
+    } else {
+      otpStore.set(phone, otp);
+    }
 
     try {
-      const apiKey = process.env.TEXTBELT_API_KEY || 'c1e8b9f5e00e752605f5731c77031d8814f2ca773Ur4NF43xpHJZ3wZ5tSo5fRcS';
+      const apiKey = process.env.TEXTBELT_API_KEY || process.env.VITE_TEXTBELT_API_KEY || 'c1e8b9f5e00e752605f5731c77031d8814f2ca773Ur4NF43xpHJZ3wZ5tSo5fRcS';
 
       const response = await fetch('https://textbelt.com/text', {
         method: 'POST',
@@ -284,8 +293,25 @@ app.post('/api/distance', async (req, res) => {
 
   app.post('/api/sms/verify-otp', async (req, res) => {
     const { phone, code, name } = req.body;
-    if (otpStore.get(phone) === code) {
-      otpStore.delete(phone);
+    let isValid = false;
+
+    if (db) {
+      try {
+        const otpSnap = await getDoc(doc(db, 'otps', phone));
+        if (otpSnap.exists() && otpSnap.data().code === code) {
+          isValid = true;
+        }
+      } catch (err) {
+        console.error('Failed to verify OTP from Firestore', err);
+      }
+    } else {
+      if (otpStore.get(phone) === code) {
+        isValid = true;
+        otpStore.delete(phone);
+      }
+    }
+
+    if (isValid) {
       if (name) {
         if (db) {
           try {
