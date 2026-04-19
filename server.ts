@@ -91,14 +91,12 @@ function calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lo
   return R * c;
 }
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+const app = express();
 
-  app.use(express.json());
+app.use(express.json());
 
-  // Distance Calculation API
-  app.post('/api/distance', async (req, res) => {
+// Distance Calculation API
+app.post('/api/distance', async (req, res) => {
     try {
       const { pickup, dropoff } = req.body;
       if (!pickup || !dropoff) {
@@ -609,24 +607,27 @@ async function startServer() {
     }
   });
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
+  // Vite middleware for development (only if not on Vercel and not in production)
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
+    }).then(vite => {
+      app.use(vite.middlewares);
+      app.listen(3000, '0.0.0.0', () => {
+        console.log(`Server running on http://localhost:3000`);
+      });
     });
-    app.use(vite.middlewares);
-  } else {
+  } else if (!process.env.VERCEL) {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-}
-
-startServer();
+export default app;
