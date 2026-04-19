@@ -135,7 +135,9 @@ export default function Step4Addresses({ order, updateOrder, onNext, onViewHisto
     }
     setIsSearching(true);
     try {
-      const res = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(query)}`);
+      // Biased to Philadelphia: lat=39.9526, lon=-75.1652
+      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=39.9526&lon=-75.1652&limit=15`;
+      const res = await fetch(url);
       const data = await res.json();
       
       if (data.error) {
