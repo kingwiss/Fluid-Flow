@@ -39,6 +39,7 @@ export interface OrderState {
   uid?: string;
   id?: string;
   createdAt?: number;
+  tip?: number;
 }
 
 export const INITIAL_ORDER_STATE: OrderState = {
@@ -58,4 +59,5 @@ export const INITIAL_ORDER_STATE: OrderState = {
   deliveryFee: 15.00, // Default base fee, will be recalculated
   appliedCoupon: null,
   customerPhone: '',
+  tip: 0,
 };

@@ -525,7 +525,7 @@ export default function Step5Review({ order, updateOrder }: Props) {
     }
   };
 
-  const totalFee = order.deliveryFee + 2.50 - (order.appliedCoupon?.discount === 'free_delivery' ? order.deliveryFee : (typeof order.appliedCoupon?.discount === 'number' ? order.deliveryFee * order.appliedCoupon.discount : 0)) + tip;
+  const totalFee = order.deliveryFee + 2.50 - (order.appliedCoupon?.discount === 'free_delivery' ? order.deliveryFee : (typeof order.appliedCoupon?.discount === 'number' ? order.deliveryFee * order.appliedCoupon.discount : 0)) + totalTip;
 
   const mapboxKey = (import.meta as any).env.VITE_MAPBOX_API_KEY;
   const tileUrl = mapboxKey 
