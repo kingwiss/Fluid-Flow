@@ -10,3 +10,13 @@ services:
         value: production
       - key: PORT
         value: 3000
+      - key: VITE_STRIPE_PUBLIC_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: VITE_PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_SECRET
+        sync: false
+      - key: TEXTBELT_API_KEY
+        sync: false
