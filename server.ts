@@ -40,17 +40,17 @@ const usersDB = new Map<string, { phone: string, name: string }>(); // phone -> 
 // Helper to send SMS via Textbelt
 async function sendSMS(phone: string, message: string) {
   try {
-    const apiKey = process.env.TEXTBELT_API_KEY || 'c1e8b9f5e00e752605f5731c77031d8814f2ca773Ur4NF43xpHJZ3wZ5tSo5fRcS';
+    const apiKey = process.env.TEXTBELT_API_KEY || process.env.VITE_TEXTBELT_API_KEY || 'c1e8b9f5e00e752605f5731c77031d8814f2ca773Ur4NF43xpHJZ3wZ5tSo5fRcS';
     const response = await fetch('https://textbelt.com/text', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/json'
       },
-      body: new URLSearchParams({
+      body: JSON.stringify({
         phone: phone,
         message: message,
         key: apiKey
-      }).toString()
+      })
     });
     const data = await response.json();
     console.log('SMS sent:', data);
@@ -244,16 +244,18 @@ app.post('/api/distance', async (req, res) => {
   // SMS & OTP Endpoints
   app.post('/api/sms/send-otp', async (req, res) => {
     const { phone } = req.body;
+    // Strictly sanitize phone to retain only + and digits
+    const cleanPhone = phone ? phone.replace(/[^\d+]/g, '') : '';
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     
     if (db) {
       try {
-        await setDoc(doc(db, 'otps', phone), { code: otp, expiresAt: Date.now() + 10 * 60 * 1000 });
+        await setDoc(doc(db, 'otps', cleanPhone), { code: otp, expiresAt: Date.now() + 10 * 60 * 1000 });
       } catch (err) {
         console.error('Failed to save OTP to Firestore', err);
       }
     } else {
-      otpStore.set(phone, otp);
+      otpStore.set(cleanPhone, otp);
     }
 
     try {
@@ -262,20 +264,22 @@ app.post('/api/distance', async (req, res) => {
       const response = await fetch('https://textbelt.com/text', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/json'
         },
-        body: new URLSearchParams({
-          phone: phone,
+        body: JSON.stringify({
+          phone: cleanPhone,
           message: `Your FluidFlow verification code is: ${otp}`,
           key: apiKey
-        }).toString()
+        })
       });
 
       const data = await response.json();
+      console.log('Textbelt API Response:', data); // Log the response for render diagnostics
+      
       if (data.success) {
         res.json({ success: true, message: 'OTP sent via Textbelt' });
       } else {
-        console.warn('Textbelt error (fallback to dev mode):', data.error);
+        console.warn('Textbelt failed with error:', data.error);
         // If out of quota, we still want the user to be able to test the app
         // So we return the OTP in the response but mark it as a fallback
         res.json({ 
@@ -299,10 +303,12 @@ app.post('/api/distance', async (req, res) => {
   app.post('/api/sms/verify-otp', async (req, res) => {
     const { phone, code, name } = req.body;
     let isValid = false;
+    
+    const cleanPhone = phone ? phone.replace(/[^\d+]/g, '') : '';
 
     if (db) {
       try {
-        const otpSnap = await getDoc(doc(db, 'otps', phone));
+        const otpSnap = await getDoc(doc(db, 'otps', cleanPhone));
         if (otpSnap.exists() && otpSnap.data().code === code) {
           isValid = true;
         }
@@ -310,9 +316,9 @@ app.post('/api/distance', async (req, res) => {
         console.error('Failed to verify OTP from Firestore', err);
       }
     } else {
-      if (otpStore.get(phone) === code) {
+      if (otpStore.get(cleanPhone) === code) {
         isValid = true;
-        otpStore.delete(phone);
+        otpStore.delete(cleanPhone);
       }
     }
 
@@ -320,12 +326,12 @@ app.post('/api/distance', async (req, res) => {
       if (name) {
         if (db) {
           try {
-            await setDoc(doc(db, 'users', phone), { phone, name, lastLogin: Date.now() }, { merge: true });
+            await setDoc(doc(db, 'users', cleanPhone), { phone: cleanPhone, name, lastLogin: Date.now() }, { merge: true });
           } catch (err) {
             console.error('Failed to save user to Firestore', err);
           }
         } else {
-          usersDB.set(phone, { phone, name });
+          usersDB.set(cleanPhone, { phone: cleanPhone, name });
         }
       }
       res.json({ success: true, orders: [] });
