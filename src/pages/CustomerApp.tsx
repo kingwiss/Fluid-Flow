@@ -77,7 +77,7 @@ export default function CustomerApp() {
       
       // If we have their phone, schedule the 30-min reminder
       if (order.customerPhone) {
-        fetch('/api/sms/schedule-abandoned', {
+        fetch((import.meta.env.VITE_API_URL || '') + '/api/sms/schedule-abandoned', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone: order.customerPhone })
@@ -104,7 +104,7 @@ export default function CustomerApp() {
           }
         } catch(e) {}
 
-        fetch('/api/sms/cancel-abandoned', {
+        fetch((import.meta.env.VITE_API_URL || '') + '/api/sms/cancel-abandoned', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone: order.customerPhone })

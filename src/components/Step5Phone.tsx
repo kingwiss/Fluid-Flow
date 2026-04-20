@@ -65,7 +65,7 @@ export default function Step5Phone({ order, updateOrder, onNext, isTrackingMode,
     setIsLoading(true);
     try {
       const formattedPhone = phone.startsWith('+') ? phone : `+1${phone.replace(/\D/g, '')}`;
-      const response = await fetch('/api/sms/send-otp', {
+      const response = await fetch((import.meta.env.VITE_API_URL || '') + '/api/sms/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: formattedPhone })
@@ -111,7 +111,7 @@ export default function Step5Phone({ order, updateOrder, onNext, isTrackingMode,
     setIsLoading(true);
     try {
       const formattedPhone = phone.startsWith('+') ? phone : `+1${phone.replace(/\D/g, '')}`;
-      const res = await fetch('/api/sms/verify-otp', {
+      const res = await fetch((import.meta.env.VITE_API_URL || '') + '/api/sms/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: formattedPhone, code: otp, name: name })

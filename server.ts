@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import path from 'path';
 import twilio from 'twilio';
 import Stripe from 'stripe';
@@ -88,6 +89,7 @@ function calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lo
 
 const app = express();
 
+app.use(cors({ origin: '*' })); // Allow GitHub Pages frontend to call this backend seamlessly
 app.use(express.json());
 
 // Normalize Vercel paths: Vercel serverless functions sometimes strip the "/api" prefix

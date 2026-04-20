@@ -26,7 +26,7 @@ export default function PayPalCheckout({ amount, onSuccess, onCancel }: PayPalCh
           style={{ layout: "vertical", shape: "rect", color: "gold" }}
           createOrder={async () => {
             try {
-              const response = await fetch('/api/paypal/create-order', {
+              const response = await fetch((import.meta.env.VITE_API_URL || '') + '/api/paypal/create-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ amount })
@@ -45,7 +45,7 @@ export default function PayPalCheckout({ amount, onSuccess, onCancel }: PayPalCh
           onApprove={async (data, actions) => {
             try {
               toast.loading('Capturing payment...');
-              const response = await fetch('/api/paypal/capture-order', {
+              const response = await fetch((import.meta.env.VITE_API_URL || '') + '/api/paypal/capture-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ orderID: data.orderID })

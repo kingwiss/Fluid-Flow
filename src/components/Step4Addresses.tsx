@@ -180,7 +180,7 @@ export default function Step4Addresses({ order, updateOrder, onNext, onViewHisto
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout on frontend
 
-      fetch('/api/distance', {
+      fetch((import.meta.env.VITE_API_URL || '') + '/api/distance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pickup: order.pickupCoords, dropoff: order.deliveryCoords }),

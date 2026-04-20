@@ -315,7 +315,7 @@ export default function Step5Review({ order, updateOrder }: Props) {
           ];
         }
 
-        const res = await fetch('/api/route', {
+        const res = await fetch((import.meta.env.VITE_API_URL || '') + '/api/route', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ waypoints })
@@ -338,7 +338,7 @@ export default function Step5Review({ order, updateOrder }: Props) {
     if (method === 'stripe') {
       toast.loading('Preparing payment...');
       try {
-        const response = await fetch('/api/create-payment-intent', {
+        const response = await fetch((import.meta.env.VITE_API_URL || '') + '/api/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ amount: totalFee, currency: 'usd' })
@@ -365,7 +365,7 @@ export default function Step5Review({ order, updateOrder }: Props) {
       if (foodCost === null) return;
       toast.loading('Preparing payment...');
       try {
-        const response = await fetch('/api/create-payment-intent', {
+        const response = await fetch((import.meta.env.VITE_API_URL || '') + '/api/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ amount: foodCost, currency: 'usd' })
@@ -402,7 +402,7 @@ export default function Step5Review({ order, updateOrder }: Props) {
     if (method === 'stripe') {
       toast.loading('Preparing tip payment...');
       try {
-        const response = await fetch('/api/create-payment-intent', {
+        const response = await fetch((import.meta.env.VITE_API_URL || '') + '/api/create-payment-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ amount: amount, currency: 'usd' })
