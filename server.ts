@@ -647,7 +647,7 @@ app.post('/api/distance', async (req, res) => {
   });
 
   // Vite middleware for development (only if not on Vercel and not in production)
-  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL && !process.env.NETLIFY) {
     import('vite').then(({ createServer: createViteServer }) => {
       createViteServer({
         server: { middlewareMode: true },
@@ -659,7 +659,7 @@ app.post('/api/distance', async (req, res) => {
         });
       });
     });
-  } else if (!process.env.VERCEL) {
+  } else if (!process.env.VERCEL && !process.env.NETLIFY) {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
