@@ -1,22 +1,17 @@
 import 'dotenv/config';
 import express from 'express';
-import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import twilio from 'twilio';
 import Stripe from 'stripe';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, query, doc, setDoc, getDoc, updateDoc, orderBy } from 'firebase/firestore';
-import fs from 'fs';
+import firebaseConfig from './firebase-applet-config.json';
 
 // Load Firebase config
 let db: any = null;
 try {
-  const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
-  if (fs.existsSync(configPath)) {
-    const firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    const app = initializeApp(firebaseConfig);
-    db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-  }
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 } catch (err) {
   console.error("Failed to initialize Firebase in server:", err);
 }
@@ -94,6 +89,16 @@ function calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lo
 const app = express();
 
 app.use(express.json());
+
+// Normalize Vercel paths: Vercel serverless functions sometimes strip the "/api" prefix
+if (process.env.VERCEL) {
+  app.use((req, res, next) => {
+    if (!req.url.startsWith('/api')) {
+      req.url = '/api' + (req.url === '/' ? '' : req.url);
+    }
+    next();
+  });
+}
 
 // Distance Calculation API
 app.post('/api/distance', async (req, res) => {
@@ -635,13 +640,15 @@ app.post('/api/distance', async (req, res) => {
 
   // Vite middleware for development (only if not on Vercel and not in production)
   if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-    createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    }).then(vite => {
-      app.use(vite.middlewares);
-      app.listen(3000, '0.0.0.0', () => {
-        console.log(`Server running on http://localhost:3000`);
+    import('vite').then(({ createServer: createViteServer }) => {
+      createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      }).then(vite => {
+        app.use(vite.middlewares);
+        app.listen(3000, '0.0.0.0', () => {
+          console.log(`Server running on http://localhost:3000`);
+        });
       });
     });
   } else if (!process.env.VERCEL) {
