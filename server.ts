@@ -5,14 +5,15 @@ import path from 'path';
 import twilio from 'twilio';
 import Stripe from 'stripe';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, query, doc, setDoc, getDoc, updateDoc, orderBy } from 'firebase/firestore';
+import { initializeFirestore, collection, getDocs, query, doc, setDoc, getDoc, updateDoc, orderBy } from 'firebase/firestore';
 import firebaseConfig from './firebase-applet-config.json';
 
 // Load Firebase config
 let db: any = null;
 try {
   const app = initializeApp(firebaseConfig);
-  db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  // Force Long Polling to prevent Netlify/AWS Lambda from killing the active gRPC socket connection
+  db = initializeFirestore(app, { experimentalForceLongPolling: true }, firebaseConfig.firestoreDatabaseId);
 } catch (err) {
   console.error("Failed to initialize Firebase in server:", err);
 }
@@ -45,13 +46,13 @@ async function sendSMS(phone: string, message: string) {
     const response = await fetch('https://textbelt.com/text', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         phone: phone,
         message: message,
         key: apiKey
-      })
+      }).toString()
     });
     const data = await response.json();
     console.log('SMS sent:', data);
@@ -266,13 +267,13 @@ app.post('/api/distance', async (req, res) => {
       const response = await fetch('https://textbelt.com/text', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: JSON.stringify({
+        body: new URLSearchParams({
           phone: cleanPhone,
           message: `Your FluidFlow verification code is: ${otp}`,
           key: apiKey
-        })
+        }).toString()
       });
 
       const data = await response.json();
