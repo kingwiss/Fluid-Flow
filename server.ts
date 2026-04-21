@@ -5,15 +5,14 @@ import path from 'path';
 import twilio from 'twilio';
 import Stripe from 'stripe';
 import { initializeApp } from 'firebase/app';
-import { initializeFirestore, collection, getDocs, query, doc, setDoc, getDoc, updateDoc, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, query, doc, setDoc, getDoc, updateDoc, orderBy } from 'firebase/firestore';
 import firebaseConfig from './firebase-applet-config.json';
 
 // Load Firebase config
 let db: any = null;
 try {
   const app = initializeApp(firebaseConfig);
-  // Force Long Polling to prevent Netlify/AWS Lambda from killing the active gRPC socket connection
-  db = initializeFirestore(app, { experimentalForceLongPolling: true }, firebaseConfig.firestoreDatabaseId);
+  db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 } catch (err) {
   console.error("Failed to initialize Firebase in server:", err);
 }
@@ -648,7 +647,7 @@ app.post('/api/distance', async (req, res) => {
   });
 
   // Vite middleware for development (only if not on Vercel and not in production)
-  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL && !process.env.NETLIFY) {
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     import('vite').then(({ createServer: createViteServer }) => {
       createViteServer({
         server: { middlewareMode: true },
@@ -660,7 +659,7 @@ app.post('/api/distance', async (req, res) => {
         });
       });
     });
-  } else if (!process.env.VERCEL && !process.env.NETLIFY) {
+  } else if (!process.env.VERCEL) {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
